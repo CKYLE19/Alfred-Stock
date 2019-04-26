@@ -23,7 +23,7 @@ def main(wf):
 
     quote = get_stock(args.query)
     wf.add_item(
-        title="{company} ({ticker}): ${price} {chg}".format(
+        title="{company} ({ticker}): ${price} | {chg}%".format(
             company=quote["companyName"],
             ticker=quote["symbol"],
             price=quote["latestPrice"],
