@@ -55,9 +55,11 @@ def main(wf):
         arg="https://finance.yahoo.com/quote/{ticker}".format(
             ticker=args.query)
     )
+
     def get_news_cache():
         return get_news(args.query)
-    news = wf.cached_data("news", get_news_cache, max_age=600)
+    news = wf.cached_data(
+        "news-{ticker}".format(ticker=args.query), get_news_cache, max_age=1800)
     for article in news:
         wf.add_item(
             title=article["title"],
