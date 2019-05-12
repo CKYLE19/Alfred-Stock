@@ -1,5 +1,6 @@
 #!usr/bin/python
 
+import os
 import sys
 import argparse
 from workflow import Workflow3, web, ICON_WEB
@@ -13,6 +14,22 @@ def get_stock(stock):
     r = web.get(url)
     result = r.json()
     return result["quote"]
+
+
+def get_news(stock):
+    # get stock news articles here
+    api_key = os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), "news_api_key.txt")
+    f = open(api_key, "r")
+    key = f.readline()
+    f.close()
+    url = "https://stocknewsapi.com/api/v1?tickers={ticker}&sortby=trending&type=article&items=5&token={token}".format(
+        ticker=stock,
+        token=key
+    )
+    r = web.get(url)
+    result = r.json()
+    return result["data"]
 
 
 def main(wf):
@@ -33,8 +50,21 @@ def main(wf):
             hi=quote["high"],
             lo=quote["low"]
         ),
-        icon=icon
+        icon=icon,
+        valid=True,
+        arg="https://finance.yahoo.com/quote/{ticker}".format(
+            ticker=args.query)
     )
+    def get_news_cache():
+        return get_news(args.query)
+    news = wf.cached_data("news", get_news_cache, max_age=600)
+    for article in news:
+        wf.add_item(
+            title=article["title"],
+            subtitle=article["text"],
+            valid=True,
+            arg=article["news_url"]
+        )
     wf.send_feedback()
     return 0
 
